@@ -36,6 +36,8 @@ Then create `*.yml.erb` Kubernetes resource definition files in the stage folder
 
 When you run `mina production deploy`, a namespace labelled `my_app-production` will be created on the Kubernetes cluster and set as a local kubectl context. Then the resources are applied to the cluster after checking/waiting for the image to be available on the repository.
 
+NB: `docker manifest inspect` is used to check the image is available. This is currently an experimental feature of Docker CLI which needs to be enabled in your local config, see https://docs.docker.com/engine/reference/commandline/manifest_inspect/. Docker CLI might need to be authenticated to have access to the image repository, for instance see https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud_as_a_docker_credential_helper for images hosted on the Google Cloud Registry
+
 ### Tasks available
 
 #### `kubernetes:deploy`
