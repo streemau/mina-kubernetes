@@ -3,6 +3,9 @@ Plugin for the [mina](https://github.com/mina-deploy/mina) deployment tool to st
 
 Requires local Docker and [kubectl](https://cloud.google.com/kubernetes-engine/docs/quickstart) with authentication set up to connect to the destination Kubernetes cluster.
 
+NB: `docker manifest inspect` is used to check the image is available. This requires experimental features to be enabled in your local Docker config by adding `"experimental": "enabled"` to `~/.docker/config.json`.
+If the image repository is not public authentication will need to be set up for your local Docker, for instance see https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud_as_a_docker_credential_helper for images hosted on the Google Cloud Registry
+
 ## Usage
 
 Add `mina-kubernetes` to your local Gemfile. 
@@ -35,8 +38,6 @@ set :kube_config, "~/.kube/config"
 Then create `*.yml.erb` Kubernetes resource definition files in the stage folder, i.e. `config/deploy/production/app.yml.erb`. Occurences of `<%= image_repo %>` and `<%= current_sha %>` in these files will be dynamically replaced on deploy by the image repository URL and the latest commit hash of the selected branch on its git origin.
 
 When you run `mina production deploy`, a namespace labelled `my_app-production` will be created on the Kubernetes cluster and set as a local kubectl context. Then the resources are applied to the cluster after checking/waiting for the image to be available on the repository.
-
-NB: `docker manifest inspect` is used to check the image is available. This is currently an experimental feature of Docker CLI which needs to be enabled in your local config, see https://docs.docker.com/engine/reference/commandline/manifest_inspect/. Docker CLI might need to be authenticated to have access to the image repository, for instance see https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud_as_a_docker_credential_helper for images hosted on the Google Cloud Registry
 
 ### Tasks available
 
