@@ -13,6 +13,7 @@ Add `mina-kubernetes` to your local Gemfile.
 Create a configuration file for mina in `config/deploy.rb` like the one below:
 ```ruby
 require "mina/default"
+require "mina/multistage"
 require "mina/kubernetes"
 
 task :deploy do
@@ -23,7 +24,7 @@ end
 Add the following variables to your stage configuration i.e. `config/deploy/production.rb`:
 ```ruby
 set :app_name, "my_app"
-set :image_repository, "gcr.io/project-id/myapp"
+set :image_repo, "gcr.io/project-id/myapp"
 set :kubernetes_cluster, "kubernetes_cluster_name"
 set :kubernetes_user, "kubernetes_user_name"
 ```
