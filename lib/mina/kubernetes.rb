@@ -35,7 +35,7 @@ namespace :kubernetes do
     desc "Spins up temporary pod with image and runs given command in interactive shell, passing given environment variable"
     set_tag_from_branch_commit unless fetch(:image_tag)
     wait_until_image_ready(fetch(:image_tag))
-    run_terminal_command(fetch(:command), fetch(:env_hash))
+    run_terminal_command(fetch(:command), env_hash_arg)
   end
 
   task :delete do
@@ -53,6 +53,10 @@ namespace :kubernetes do
 end
 
 private
+
+def env_hash_arg
+  @env_hash_arg ||= (fetch(:env_hash).is_a?(String) ? JSON.parse(fetch(:env_hash)) : fetch(:env_hash)) || {}
+end
 
 def set_tag_from_branch_commit
   run :local do
