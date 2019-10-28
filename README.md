@@ -1,9 +1,9 @@
 # mina-kubernetes
-Plugin for the [mina](https://github.com/mina-deploy/mina) deployment tool to streamline deployment of resources to Kubernetes cluster, using the [kubernetes-deploy](https://github.com/Shopify/kubernetes-deploy) gem and [mina-multistage](https://github.com/endoze/mina-multistage) plugin.
+Plugin for the [mina](https://github.com/mina-deploy/mina) deployment tool to streamline deployment of resources to Kubernetes clusters, using the [kubernetes-deploy](https://github.com/Shopify/kubernetes-deploy) gem and [mina-multistage](https://github.com/endoze/mina-multistage) plugin.
 
-Requires local Docker and [kubectl](https://cloud.google.com/kubernetes-engine/docs/quickstart) with authentication set up to connect to the destination Kubernetes cluster.
+Requires local Docker and [kubectl](https://cloud.google.com/kubernetes-engine/docs/quickstart) with local authentication set up to connect to the destination Kubernetes cluster as context in your local KUBE_CONFIG. See https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#generate_kubeconfig_entry for example with Google Kubernetes Engine.
 
-NB: `docker manifest inspect` is used to check the image is available. This requires experimental features to be enabled in your local Docker config by adding `"experimental": "enabled"` to `~/.docker/config.json`.
+NB: `docker manifest inspect` is used to check whether the Docker image with requested tag is available. This requires experimental features to be enabled in your local Docker config by adding `"experimental": "enabled"` to `~/.docker/config.json`.
 If the image repository is not public authentication will need to be set up for your local Docker, for instance see https://cloud.google.com/container-registry/docs/advanced-authentication#gcloud_as_a_docker_credential_helper for images hosted on the Google Cloud Registry
 
 ## Usage
