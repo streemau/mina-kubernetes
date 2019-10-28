@@ -23,20 +23,14 @@ end
 
 Add the following variables to your stage configuration i.e. `config/deploy/production.rb`:
 ```ruby
-set :app_name, "my_app"
+set :namespace, "my_app"
 set :image_repo, "gcr.io/project-id/myapp"
-set :kubernetes_cluster, "kubernetes_cluster_name"
-set :kubernetes_user, "kubernetes_user_name"
+set :kubernetes_context, "kubernetes_context_name"
 ```
 
 If `set :image_tag, "my_image_tag"` is also defined, it'll be used to deploy the image tagged with this tag on the repository. Otherwise you'll be prompted to pick a branch from current working Git repository and the image to deploy will be assumed to be tagged with the Git commit hash, i.e. `gcr.io/project-123456/my_app:abcd1234`.
 
-Optional configuration (showing default values):
-```ruby
-set :kube_config, "~/.kube/config"
-```
-
-Then create `*.yml.erb` Kubernetes resource definition files in the stage folder, i.e. `config/deploy/production/app.yml.erb`. Occurences of `<%= image_repo %>` and `<%= current_sha %>` in these files will be dynamically replaced on deploy by the image repository URL and the latest commit hash of the selected branch on its git origin.
+Then add `*.yml.erb` Kubernetes resource definition files in the stage folder, i.e. `config/deploy/production/app.yml.erb`. Occurences of `<%= image_repo %>` and `<%= current_sha %>` in these files will be dynamically replaced on deploy by the image repository URL and the latest commit hash of the selected branch on its git origin.
 
 When you run `mina production deploy`, a namespace labelled `my_app-production` will be created on the Kubernetes cluster and set as a local kubectl context. Then the resources are applied to the cluster after checking/waiting for the image to be available on the repository.
 
@@ -56,4 +50,4 @@ Prompts for branch unless image tag is set, then spins up a temporary pod with t
 
 #### `kubernetes:delete`
 
-Confirms and delete all resources on cluster under namespace `app_name-stage`.
+Confirms and delete all resources on cluster under namespace. 
