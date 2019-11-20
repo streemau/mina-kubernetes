@@ -1,3 +1,9 @@
+## 2.1.0
+
+*Enhancement*
+
+- Pass `stage` variable into the template bindings. This is useful for example to load content from the `config/credentials/production.key` into `secrets.yml.erb`. 
+
 ## 2.0.0
 
 *Breaking*
