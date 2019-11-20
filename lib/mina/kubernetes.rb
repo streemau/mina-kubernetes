@@ -91,6 +91,6 @@ end
 def apply_kubernetes_resources
   run :local do
     comment "Apply all Kubernetes resources..."
-    command "REVISION=#{fetch(:image_tag)} kubernetes-deploy --template-dir=config/deploy/#{fetch(:stage)} --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} #{fetch(:namespace)} #{fetch(:kubernetes_context)}"
+    command "REVISION=#{fetch(:image_tag)} kubernetes-deploy --template-dir=config/deploy/#{fetch(:stage)} --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},stage=#{fetch(:stage)},namespace=#{fetch(:namespace)} #{fetch(:namespace)} #{fetch(:kubernetes_context)}"
   end
 end

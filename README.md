@@ -32,7 +32,17 @@ If `set :image_tag, "my_image_tag"` is also defined, it'll be used to deploy the
 
 Then add `*.yml.erb` Kubernetes resource definition files in the stage folder, i.e. `config/deploy/production/app.yml.erb`. Occurences of `<%= image_repo %>` and `<%= current_sha %>` in these files will be dynamically replaced on deploy by the image repository URL and the latest commit hash of the selected branch on its git origin.
 
-When you run `mina production deploy`, a namespace labelled `my_app-production` will be created on the Kubernetes cluster and set as a local kubectl context. Then the resources are applied to the cluster after checking/waiting for the image to be available on the repository.
+The current stage (which usually maps to the Rails environment being deployed) is also available in the templates, so you can can for instance deploy the RAILS_MASTER_KEY for encrypted credentials as a Kuberntes secrets by adding a `secrets.yml.erb` as below:
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets
+data:
+  RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/#{stage}.key").strip) %>
+```
+
+When you run `mina production deploy`, these resources are applied to the cluster under the given namespace after checking/waiting for the image to be available on the repository.
 
 ### Tasks available
 
