@@ -9,12 +9,12 @@ set :execution_mode, :pretty
 
 namespace :kubernetes do
 
-  task :deploy do
+  task :deploy, [:options] do |task, args|
     desc "Set image tag to be latest commit of prompted branch (unless provided) then applies resources to cluster"
     set_tag_from_branch_commit unless fetch(:image_tag)
     wait_until_image_ready(fetch(:image_tag))
     create_namespace_on_cluster
-    apply_kubernetes_resources
+    apply_kubernetes_resources(args[:options])
   end
 
   task :bash do
@@ -88,9 +88,13 @@ def run_terminal_command(command, env_hash = {})
   system "kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
 end
 
-def apply_kubernetes_resources
+def apply_kubernetes_resources(options)
   run :local do
     comment "Apply all Kubernetes resources..."
-    command "REVISION=#{fetch(:image_tag)} kubernetes-deploy --template-dir=config/deploy/#{fetch(:stage)} --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} #{fetch(:namespace)} #{fetch(:kubernetes_context)}"
+    filepaths = options[:filepaths] || "config/deploy/#{fetch(:stage)}"
+    render_cmd = "krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
+    deploy_cmd = "krane deploy #{fetch(:namespace)} #{fetch(:kubernetes_context)} --stdin "
+    deploy_cmd += options[:deployment_options] if options[:deployment_options]
+    command "#{render_cmd} | #{deploy_cmd}"
   end
 end
