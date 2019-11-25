@@ -8,7 +8,7 @@ If the image repository is not public authentication will need to be set up for 
 
 ## Usage
 
-Add `mina-kubernetes` to your local Gemfile. 
+Add `mina-kubernetes` to your local Gemfile.
 
 Create a configuration file for mina in `config/deploy.rb` like the one below:
 ```ruby
@@ -41,8 +41,16 @@ metadata:
 data:
   RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/production.key").strip) %>
 ```
-  
+
 When running `mina production deploy`, it'll prompt for a branch and check the image tagged with current commit hash from selected branch is available on the repository. Then the `kubernetes-deploy` executable is called to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/kubernetes-deploy#deploy-walkthrough for more details)
+
+### Passing options to kubernetes-deploy
+
+```ruby
+  invoke :"kubernetes:deploy", "--no-prune"
+```
+
+Refer to https://github.com/Shopify/krane#usage for a complete set of options
 
 ### Tasks available
 
@@ -60,4 +68,4 @@ Prompts for branch unless image tag is set, then spins up a temporary pod with t
 
 #### `kubernetes:delete`
 
-Confirms and delete all resources on cluster under namespace. 
+Confirms and delete all resources on cluster under namespace.
