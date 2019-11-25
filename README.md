@@ -1,5 +1,5 @@
 # mina-kubernetes
-Plugin for the [mina](https://github.com/mina-deploy/mina) deployment tool to streamline deployment of resources to Kubernetes clusters, using the [kubernetes-deploy](https://github.com/Shopify/kubernetes-deploy) gem and [mina-multistage](https://github.com/endoze/mina-multistage) plugin.
+Plugin for the [mina](https://github.com/mina-deploy/mina) deployment tool to streamline deployment of resources to Kubernetes clusters, using the [krane](https://github.com/Shopify/krane) gem and [mina-multistage](https://github.com/endoze/mina-multistage) plugin.
 
 Requires local Docker and [kubectl](https://cloud.google.com/kubernetes-engine/docs/quickstart) with local authentication set up to connect to the destination Kubernetes cluster as context in your local KUBE_CONFIG. See https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#generate_kubeconfig_entry for example with Google Kubernetes Engine.
 
@@ -42,9 +42,9 @@ data:
   RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/production.key").strip) %>
 ```
 
-When running `mina production deploy`, it'll prompt for a branch and check the image tagged with current commit hash from selected branch is available on the repository. Then the `kubernetes-deploy` executable is called to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/kubernetes-deploy#deploy-walkthrough for more details)
+When running `mina production deploy`, it'll prompt for a branch and check the image tagged with current commit hash from selected branch is available on the repository. Then the `krane` executable is called to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/krane#deploy-walkthrough for more details)
 
-### Passing options to kubernetes-deploy
+### Passing options to krane
 
 ```ruby
   invoke :"kubernetes:deploy", "--no-prune"
