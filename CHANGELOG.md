@@ -1,3 +1,14 @@
+## 2.2.0
+
+*Enhancements*
+
+- Using `krane` 1.0.0 (previously `kubernetes-deploy`)
+- Allow passing of options to `krane`
+
+## 2.1.0
+
+Yanked release.
+
 ## 2.0.0
 
 *Breaking*
