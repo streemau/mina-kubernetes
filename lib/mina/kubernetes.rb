@@ -88,7 +88,7 @@ def run_terminal_command(command, env_hash = {})
   system "kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
 end
 
-def apply_kubernetes_resources(options)
+def apply_kubernetes_resources(options = {})
   run :local do
     comment "Apply all Kubernetes resources..."
     filepaths = options[:filepaths] || "config/deploy/#{fetch(:stage)}"
