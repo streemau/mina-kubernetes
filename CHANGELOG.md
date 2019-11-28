@@ -1,3 +1,6 @@
+## 2.2.3
+- Fix nil options
+
 ## 2.2.0
 
 *Enhancements*
