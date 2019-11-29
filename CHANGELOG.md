@@ -1,5 +1,8 @@
-## 2.2.3
-- Fix nil options
+## 2.2.1 & 2.2.2
+
+*Fixes*
+
+- nil options passed to `krane`
 
 ## 2.2.0
 
