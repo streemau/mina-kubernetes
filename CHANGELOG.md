@@ -1,8 +1,8 @@
-## 2.2.1 & 2.2.2
+## 2.2.1 to 2.2.3
 
 *Fixes*
 
-- nil options passed to `krane`
+- handle nil/undefined options passed to `krane`
 
 ## 2.2.0
 
