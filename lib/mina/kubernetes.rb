@@ -91,8 +91,7 @@ end
 def apply_kubernetes_resources(options)
   run :local do
     comment "Apply all Kubernetes resources..."
-    options ||= {}
-    filepaths = options[:filepaths] || "config/deploy/#{fetch(:stage)}"
+    filepaths = options.try(:[], :filepaths) || "config/deploy/#{fetch(:stage)}"
     render_cmd = "krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
     deploy_cmd = "krane deploy #{fetch(:namespace)} #{fetch(:kubernetes_context)} --stdin "
     deploy_cmd += options[:deployment_options] if options[:deployment_options]
