@@ -21,14 +21,14 @@ namespace :kubernetes do
     desc "Spins up temporary pod with image and opens remote interactive bash"
     set_tag_from_branch_commit unless fetch(:image_tag)
     wait_until_image_ready(fetch(:image_tag))
-    run_terminal_command("bash")
+    run_command("bash")
   end
 
   task :command do
     desc "Spins up temporary pod with image and runs given command in interactive shell, passing given environment variable"
     set_tag_from_branch_commit unless fetch(:image_tag)
     wait_until_image_ready(fetch(:image_tag))
-    run_terminal_command(fetch(:command), env_hash_arg)
+    run_command(fetch(:command), env_hash_arg)
   end
 
   task :delete do
@@ -81,11 +81,11 @@ def image_available?(commit)
   system("docker manifest inspect #{fetch(:image_repo)}:#{commit} > /dev/null") == true
 end
 
-def run_terminal_command(command, env_hash = {})
+def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
   label = command.downcase.gsub(" ", "-").gsub(":", "-")
   # using system instead of mina's command so tty opens successfully
-  system "kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
+  system "kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
 end
 
 def apply_kubernetes_resources(options)

@@ -1,3 +1,9 @@
+## 2.2.4
+
+*Fixes*
+
+- run custom command within given namespace instead of `default` 
+
 ## 2.2.1 to 2.2.3
 
 *Fixes*
