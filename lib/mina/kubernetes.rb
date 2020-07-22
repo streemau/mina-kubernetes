@@ -48,16 +48,19 @@ private
 
 def kubectl_command(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+  comment proxy_env
   command "#{proxy_env} kubectl #{args}"
 end
 
 def kubectl_system(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+  comment proxy_env
   system "#{proxy_env} kubectl #{args}"
 end
 
 def krane_command(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+  comment proxy_env
   command "#{proxy_env} krane #{args}"
 end
 
@@ -100,7 +103,6 @@ end
 def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
   label = command.downcase.gsub(" ", "-").gsub(":", "-")
-  proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
   # using system instead of mina's command so tty opens successfully
   kubectl_system "run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
 end
