@@ -48,20 +48,17 @@ private
 
 def kubectl_command(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
-  comment proxy_env
-  command "#{proxy_env} kubectl #{args}"
+  system "#{proxy_env} kubectl #{args}"
 end
 
 def kubectl_system(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
-  comment proxy_env
   system "#{proxy_env} kubectl #{args}"
 end
 
 def krane_command(args)
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
-  comment proxy_env
-  command "#{proxy_env} krane #{args}"
+  system "#{proxy_env} krane #{args}"
 end
 
 def env_hash_arg
