@@ -8,6 +8,7 @@ require "base64"
 set :execution_mode, :pretty
 
 namespace :kubernetes do
+  set :proxy, nil
 
   task :deploy, [:options] do |task, args|
     desc "Set image tag to be latest commit of prompted branch (unless provided) then applies resources to cluster"
@@ -61,7 +62,8 @@ end
 def create_namespace_on_cluster
   run :local do
     comment "Create/update namespace on Kubernetes cluster..."
-    command "kubectl create namespace #{fetch(:namespace)} --dry-run -o yaml | kubectl apply -f - --context=#{fetch(:kubernetes_context)}"
+    proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+    command "kubectl create namespace #{fetch(:namespace)} --dry-run -o yaml | #{proxy_env} kubectl apply -f - --context=#{fetch(:kubernetes_context)}"
   end
 end
 
@@ -84,17 +86,23 @@ end
 def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
   label = command.downcase.gsub(" ", "-").gsub(":", "-")
+  proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+
   # using system instead of mina's command so tty opens successfully
-  system "kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
+  system "#{proxy_env} kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
 end
 
 def apply_kubernetes_resources(options)
   run :local do
     comment "Apply all Kubernetes resources..."
+
+    proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
     filepaths = options&.[](:filepaths) || "config/deploy/#{fetch(:stage)}"
-    render_cmd = "krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
-    deploy_cmd = "krane deploy #{fetch(:namespace)} #{fetch(:kubernetes_context)} --stdin "
+
+    render_cmd = "#{proxy_env} krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
+    deploy_cmd = "#{proxy_env} krane deploy #{fetch(:namespace)} #{fetch(:kubernetes_context)} --stdin "
     deploy_cmd += options[:deployment_options] if options&.[](:deployment_options)
+
     command "#{render_cmd} | #{deploy_cmd}"
   end
 end
