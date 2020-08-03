@@ -42,7 +42,12 @@ data:
   RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/production.key").strip) %>
 ```
 
-When running `mina production deploy`, it'll prompt for a branch and check the image tagged with current commit hash from selected branch is available on the repository. Then the `krane` executable is called to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/krane#deploy-walkthrough for more details)
+When running `mina production deploy`, it'll prompt for a branch and check the image tagged with current commit hash from selected branch is available on the repository. Then the `krane` executable is called to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/krane#deploy-walkthrough for more details)\
+
+### EJSON Encrypted secrets
+
+Krane supports generating Kubernetes secrets from an encrypted EJSON file: https://github.com/Shopify/krane#deploying-kubernetes-secrets-from-ejson. As per current Krane documentation "The ejson file must be included in the resources passed to --filenames it can not be read through stdin.", so
+following convention-over-configuration principles `mina-kubernetes` checks for the presence of a file named `secrets.ejson` in the stage folder and uses it if available.
 
 ### Passing options to krane
 
