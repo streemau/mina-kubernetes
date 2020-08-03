@@ -1,3 +1,15 @@
+## 2.4.0
+
+*Enhancements*
+
+- Use `secrets.ejson` if present
+
+## 2.3.0
+
+*Enhancements*
+
+- Allow using a proxy to connect to a Kubernetes cluster
+
 ## 2.2.4
 
 *Fixes*
