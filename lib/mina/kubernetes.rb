@@ -29,7 +29,7 @@ namespace :kubernetes do
     desc "Spins up temporary pod with image and runs given command in interactive shell, passing given environment variable"
     set_tag_from_branch_commit unless fetch(:image_tag)
     wait_until_image_ready(fetch(:image_tag))
-    run_command(fetch(:command), env_hash_arg)
+    run_command(fetch(:command), env_hash_arg, :overrides_hash => fetch(:overrides))
   end
 
   task :delete do
@@ -83,13 +83,14 @@ def image_available?(commit)
   system("docker manifest inspect #{fetch(:image_repo)}:#{commit} > /dev/null") == true
 end
 
-def run_command(command, env_hash = {})
+def run_command(command, env_hash = {}, overrides_hash: nil)
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
+  overrides = "--overrides=#{overrides_hash.to_json}" if overrides_hash
   label = command.downcase.gsub(" ", "-").gsub(":", "-")
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
 
   # using system instead of mina's command so tty opens successfully
-  system "#{proxy_env} kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
+  system "#{proxy_env} kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} #{overrides} -- #{command}"
 end
 
 def apply_kubernetes_resources(options)
