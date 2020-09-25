@@ -1,8 +1,7 @@
 require "tty-prompt"
 require "tty-spinner"
-require "securerandom"
 require "json"
-require "base64"
+require "time"
 
 # required by mina
 set :execution_mode, :pretty
@@ -26,9 +25,9 @@ namespace :kubernetes do
   end
 
   task :command do
+    set :skip_report_time, true
     desc "Spins up temporary pod with image and runs given command in interactive shell, passing given environment variable"
     set_tag_from_branch_commit unless fetch(:image_tag)
-    wait_until_image_ready(fetch(:image_tag))
     run_command(fetch(:command), env_hash_arg)
   end
 
@@ -52,7 +51,7 @@ end
 
 def set_tag_from_branch_commit
   run :local do
-    comment "Updating Git branches..."
+    comment "Refreshing Git branches..."
   end
   remote_branches = `git fetch --prune && git branch -r --no-merged master --sort=-committerdate | grep origin`.split("\n").collect { |b| b.strip.gsub("origin/", "") }.reject { |b| b == "master" }
   set :branch, TTY::Prompt.new.select("Which branch?", ["master"].concat(remote_branches))
@@ -69,7 +68,7 @@ end
 
 def wait_until_image_ready(commit)
   run :local do
-    comment "Check image #{fetch(:image_repo)}:#{commit} is available..."
+    comment "Checking image #{fetch(:image_repo)}:#{commit} is available..."
   end
   spinner = TTY::Spinner.new
   spinner.auto_spin
@@ -85,16 +84,37 @@ end
 
 def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
-  label = command.downcase.gsub(" ", "-").gsub(":", "-")
+  label = command.downcase.gsub(" ", "-").gsub(":", "-")+ "-#{`whoami`}".strip + "-#{fetch(:branch)}" 
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
 
-  # using system instead of mina's command so tty opens successfully
-  system "#{proxy_env} kubectl run #{label}-#{SecureRandom.hex(4)} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env} -- #{command}"
+  run :local do
+    comment "Lauching Pod #{color(label, 36)} to run #{color(command, 36)}"
+  end
+
+  pod_description = `#{proxy_env} kubectl get pod #{label} -o json --ignore-not-found --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}`
+
+  if pod_description.empty?
+    wait_until_image_ready(fetch(:image_tag))
+    run_command = "#{proxy_env} kubectl run #{label} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
+    system "#{run_command} -- #{command}"
+  else
+    started_at = Time.parse(JSON.parse(pod_description)["status"]["startTime"]).strftime('%b %e, %H:%M')
+    choice = TTY::Prompt.new.select("Pod already exists, running since #{started_at} UTC, what would you like to do?", {"Reattach session" => 1, "Kill it" => 0})
+    
+    attach_command = "#{proxy_env} kubectl attach #{label} -i --tty -c #{label} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
+    delete_command = "#{proxy_env} kubectl delete pod #{label} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
+    
+    if choice == 1
+      system "#{attach_command} && #{delete_command}"
+    else
+      system delete_command
+    end
+  end
 end
 
 def apply_kubernetes_resources(options)
   run :local do
-    comment "Apply all Kubernetes resources..."
+    comment "Applying all Kubernetes resources..."
 
     proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
     filepaths = options&.[](:filepaths) || "config/deploy/#{fetch(:stage)}"
