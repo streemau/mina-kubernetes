@@ -95,7 +95,7 @@ def run_command(command, env_hash = {})
 
   if pod_description.empty?
     wait_until_image_ready(fetch(:image_tag))
-    run_command = "#{proxy_env} kubectl run #{label} --rm -i --tty --restart=Never --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
+    run_command = "#{proxy_env} kubectl run #{label} --rm -i --tty --restart=Never --overrides='#{fetch(:kubectl_pod_overrides)}' --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
     system "#{run_command} -- #{command}"
   else
     started_at = Time.parse(JSON.parse(pod_description)["status"]["startTime"]).strftime('%b %e, %H:%M')
