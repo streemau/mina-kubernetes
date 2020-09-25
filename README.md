@@ -69,7 +69,9 @@ Prompts for branch unless image tag is set, then spins up a temporary pod with t
 
 #### `kubernetes:command`
 
-Prompts for branch unless image tag is set, then spins up a temporary pod with the image and run command given by task variable `command`, for instance with `set :command, "rails console"`. Environment variables can also be given by defining`env_hash`, i.e. `set :env_hash, {"RAILS_ENV" => "production", "MY_VAR" => "abcd123"}`
+Prompts for branch unless image tag is set, then spins up a temporary pod with the image and runs the command given in the task variable `command`, for instance with `set :command, "rails console"`. Environment variables can also be passed by defining`env_hash`, i.e. `set :env_hash, {"RAILS_ENV" => "production", "MY_VAR" => "abcd123"}`
+
+The pod will be named `command-username-branch`, and can be reattached/killed in case of disconnection.
 
 #### `kubernetes:delete`
 
