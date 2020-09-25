@@ -1,3 +1,16 @@
+## 2.5.0
+
+*Enhancements*
+
+- `kubernetes:command` starts pod with identifiable name and allows session reconnection
+- `kubernetes:command` accepts a `kubectl_pod_overrides` option
+
+## 2.4.1
+
+*Fixes*
+
+- Security: update rake dependency
+
 ## 2.4.0
 
 *Enhancements*
