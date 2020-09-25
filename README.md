@@ -73,20 +73,22 @@ Prompts for branch unless image tag is set, then spins up a temporary pod with t
 
 The pod will be named `command-username-branch`, and can be reattached/killed in case of disconnection.
 
+A `kubectl_pod_overrides` task option is available to pass a value to the `overrides` option of the `kubectl run` command.
+
 #### `kubernetes:delete`
 
 Confirms and delete all resources on cluster under namespace.
 
-## Example use: rails console
+## Example use: run rails console on non-preemptible GKE node
 
 Add the following to your `deploy.rb`
 ``` ruby
 task :console do
   set :command, "rails console"
   set :env_hash, "RAILS_ENV" => fetch(:stage), "RAILS_MASTER_KEY" => File.read("#{Dir.pwd}/config/credentials/#{fetch(:stage)}.key").strip
-  with_proxy do
-    invoke :'kubernetes:command'
-  end
+  set :kubectl_pod_overrides, '{"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "cloud.google.com/gke-preemptible", "operator": "DoesNotExist"} ] } ] } } } } }'
+
+  invoke :'kubernetes:command'
 end
 ```
 You can now run `mina production console` to open a rails console in production environment with the image of your choice!
