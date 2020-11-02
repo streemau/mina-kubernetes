@@ -1,3 +1,7 @@
+## 2.6.0
+
+- Update krane gem to ~> 2.1 for compatibility with k8s >= 1.17
+
 ## 2.5.0
 
 *Enhancements*
