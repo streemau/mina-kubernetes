@@ -84,32 +84,52 @@ end
 
 def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
-  label = command.downcase.gsub(" ", "-").gsub(":", "-")+ "-#{`whoami`}".strip + "-#{fetch(:branch)}" 
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
 
+  default_pod_name = "#{`whoami`.strip}-#{command}-#{fetch(:branch)}".downcase.gsub(" ", "-").gsub(":", "-")
+  pod_name = TTY::Prompt.new.ask("What name for the pod?", :value => default_pod_name)
+
   run :local do
-    comment "Lauching Pod #{color(label, 36)} to run #{color(command, 36)}"
+    comment "Lauching pod #{color(pod_name, 36)} to run #{color(command, 36)}"
   end
 
-  pod_description = `#{proxy_env} kubectl get pod #{label} -o json --ignore-not-found --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}`
+  pod_run_command = "#{proxy_env} kubectl run #{pod_name} --rm -i --tty --restart=Never --overrides='#{fetch(:kubectl_pod_overrides)}' --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
+  running_pod_info = `#{proxy_env} kubectl get pod #{pod_name} -o json --ignore-not-found --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}`
 
-  if pod_description.empty?
-    wait_until_image_ready(fetch(:image_tag))
-    run_command = "#{proxy_env} kubectl run #{label} --rm -i --tty --restart=Never --overrides='#{fetch(:kubectl_pod_overrides)}' --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
-    system "#{run_command} -- #{command}"
+  if running_pod_info.empty?
+    wait_for_image_and_run_command("#{pod_run_command} -- #{command}")
   else
-    started_at = Time.parse(JSON.parse(pod_description)["status"]["startTime"]).strftime('%b %e, %H:%M')
-    choice = TTY::Prompt.new.select("Pod already exists, running since #{started_at} UTC, what would you like to do?", {"Reattach session" => 1, "Kill it" => 0})
+    started_at = Time.parse(JSON.parse(running_pod_info)["status"]["startTime"]).strftime('%b %e, %H:%M')
+    choice = TTY::Prompt.new.select(
+      "Pod already exists, running since #{started_at} UTC, what would you like to do?",
+      {
+        "Reattach to its container" => :attach,
+        "Kill it and launch a fresh one" => :replace,
+        "Keep it and start one with a different name" => :other,
+      }
+    )
     
-    attach_command = "#{proxy_env} kubectl attach #{label} -i --tty -c #{label} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
-    delete_command = "#{proxy_env} kubectl delete pod #{label} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
+    delete_command = "#{proxy_env} kubectl delete pod #{pod_name} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
     
-    if choice == 1
+    case choice
+    when :attach
+      attach_command = "#{proxy_env} kubectl attach #{pod_name} -i --tty -c #{pod_name} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
       system "#{attach_command} && #{delete_command}"
-    else
+    when :replace
       system delete_command
+      run :local do
+        comment "Lauching Pod #{color(pod_name, 36)} to run #{color(command, 36)}"
+      end
+      wait_for_image_and_run_command("#{pod_run_command} -- #{command}")
+    when :other
+      run_command(command, env_hash)
     end
   end
+end
+
+def wait_for_image_and_run_command(command)
+  wait_until_image_ready(fetch(:image_tag))
+  system command
 end
 
 def apply_kubernetes_resources(options)
