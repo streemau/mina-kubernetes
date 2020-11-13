@@ -1,4 +1,13 @@
+## 2.7.0
+
+*Enhancements*
+
+- `kubernetes:command` allows to choose pod name
+- `kubernetes:command` offers to kill & start fresh pod or start other pod with different name if pod already exists
+
 ## 2.6.0
+
+*Fixes*
 
 - Update krane gem to ~> 2.1 for compatibility with k8s >= 1.17
 
