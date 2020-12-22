@@ -62,7 +62,7 @@ def create_namespace_on_cluster
   run :local do
     comment "Create/update namespace on Kubernetes cluster..."
     proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
-    command "kubectl create namespace #{fetch(:namespace)} --dry-run -o yaml | #{proxy_env} kubectl apply -f - --context=#{fetch(:kubernetes_context)}"
+    command "kubectl create namespace #{fetch(:namespace)} --dry-run=client -o yaml | #{proxy_env} kubectl apply -f - --context=#{fetch(:kubernetes_context)}"
   end
 end
 

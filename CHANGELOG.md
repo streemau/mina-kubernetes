@@ -1,3 +1,9 @@
+## 2.7.1
+
+*Fixes*
+
+- Use `--dry-run=client` instead of deprecated `--dry-run` with kubectl to create/update namespace
+
 ## 2.7.0
 
 *Enhancements*
