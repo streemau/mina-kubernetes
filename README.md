@@ -32,16 +32,6 @@ If `set :image_tag, "my_image_tag"` is also defined, it'll be used to deploy the
 
 Then add `*.yml.erb` Kubernetes resource definition files in the stage folder, for instance `config/deploy/production/webserver.yml.erb` and `config/deploy/production/backgroundjobs.yml.erb`. Occurences of `<%= image_repo %>` and `<%= current_sha %>` in these files will be dynamically replaced on deploy by the image repository URL and the latest commit hash of the selected branch on its git origin.
 
-You can also get the RAILS_MASTER_KEY for encrypted credentials deployed as a Kubernetes secrets by adding a secrets.yml.erb like below:
-```yml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: secrets
-data:
-  RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/production.key").strip) %>
-```
-
 When running `mina production deploy`, it'll check the image is available on the repository and then call the `krane` executable to fill in the variables in the resource templates and apply them all to the cluster under the given namespace (see https://github.com/Shopify/krane#deploy-walkthrough for more details)
 
 ### EJSON Encrypted secrets
@@ -59,15 +49,15 @@ Refer to https://github.com/Shopify/krane#usage for a complete set of options
 
 ## Tasks available
 
-#### `kubernetes:deploy`
+### `kubernetes:deploy`
 
 Creates the namespace on cluster if it doesn't exist, prompts for a git branch if no image tag is already specified in stage file, then applies all resources to cluster after checking tagged image is available.
 
-#### `kubernetes:bash`
+### `kubernetes:bash`
 
 Prompts for branch unless image tag is set, then spins up a temporary pod with the image and opens up a remote bash terminal.
 
-#### `kubernetes:command`
+### `kubernetes:command`
 
 Prompts for branch unless image tag is set, then spins up a temporary pod with the image and runs the command given in the task variable `command`, for instance with `set :command, "rails console"`. Environment variables can also be passed by defining`env_hash`, i.e. `set :env_hash, {"RAILS_ENV" => "production", "MY_VAR" => "abcd123"}`
 
@@ -79,7 +69,23 @@ A `kubectl_pod_overrides` task option is available to pass a value to the `overr
 
 Confirms and delete all resources on cluster under namespace.
 
-## Example use: run rails console on non-preemptible GKE node
+## Advanced usage examples
+
+### Deploy environment variable(s) as secret
+
+Using Rails and its encrypted credentials feature, the `RAILS_MASTER_KEY` environment variable can be deployed as a Kubernetes secrets by adding a `secrets.yml.erb` file like below:
+```yml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secrets
+data:
+  RAILS_MASTER_KEY: <%= Base64.strict_encode64(File.read("#{Dir.pwd}/config/credentials/production.key").strip) %>
+```
+
+Krane will deploy it before other resources so it's already available when running pods/jobs/deployments which reference this variable such as Rails migrations.
+
+### Run an interactive rails console on non-preemptible GKE node
 
 Add the following to your `deploy.rb`
 ``` ruby
