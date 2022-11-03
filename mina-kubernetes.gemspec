@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'mina', '~> 1.0'
   spec.add_runtime_dependency 'mina-multistage', '~> 1.0'
-  spec.add_runtime_dependency 'krane', '~> 2.1'
+  spec.add_runtime_dependency 'krane', '~> 3'
   spec.add_runtime_dependency 'tty-prompt'
   spec.add_runtime_dependency 'tty-spinner'
 end

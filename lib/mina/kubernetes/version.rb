@@ -1,5 +1,5 @@
 module Mina
   module Kubernetes
-    VERSION = "2.7.1"
+    VERSION = "3.0.0"
   end
 end

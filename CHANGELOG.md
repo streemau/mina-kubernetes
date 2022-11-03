@@ -1,3 +1,9 @@
+## 3.0.0
+
+*Breaking change*
+
+- Depend on [Krane 3.0.0](https://github.com/Shopify/krane/blob/master/CHANGELOG.md#300)
+
 ## 2.7.1
 
 *Fixes*
