@@ -144,7 +144,7 @@ def apply_kubernetes_resources(options)
     deploy_cmd += options[:deployment_options] if options&.[](:deployment_options)
 
     ejson_secrets_path = "#{filepaths}/secrets.ejson"
-    deploy_cmd += " --filenames #{ejson_secrets_path}" if File.exists?(ejson_secrets_path)
+    deploy_cmd += " --filenames #{ejson_secrets_path}" if File.exist?(ejson_secrets_path)
 
     command "#{render_cmd} | #{deploy_cmd}"
   end
