@@ -1,3 +1,9 @@
+## 3.0.1
+
+*Fixes*
+
+- Use `File.exist?` instead of `File.exists?` which was removed from Ruby 3.2
+
 ## 3.0.0
 
 *Breaking change*
