@@ -13,7 +13,7 @@ namespace :kubernetes do
   task :deploy, [:options] do |task, args|
     desc "Set image tag to be latest commit of prompted branch (unless provided) then applies resources to cluster"
     set_tag_from_branch_commit unless fetch(:image_tag)
-    wait_until_image_ready(fetch(:image_tag))
+    wait_until_image_ready(fetch(:image_tag)) unless fetch(:skip_image_ready_check)
     create_namespace_on_cluster
     apply_kubernetes_resources(args[:options])
   end
