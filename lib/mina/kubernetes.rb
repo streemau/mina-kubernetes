@@ -8,11 +8,12 @@ set :execution_mode, :pretty
 
 namespace :kubernetes do
   set :proxy, nil
+  set :skip_image_ready_check, false
 
   task :deploy, [:options] do |task, args|
     desc "Set image tag to be latest commit of prompted branch (unless provided) then applies resources to cluster"
     set_tag_from_branch_commit unless fetch(:image_tag)
-    wait_until_image_ready(fetch(:image_tag))
+    wait_until_image_ready(fetch(:image_tag)) unless fetch(:skip_image_ready_check)
     create_namespace_on_cluster
     apply_kubernetes_resources(args[:options])
   end
@@ -20,7 +21,7 @@ namespace :kubernetes do
   task :bash do
     desc "Spins up temporary pod with image and opens remote interactive bash"
     set_tag_from_branch_commit unless fetch(:image_tag)
-    wait_until_image_ready(fetch(:image_tag))
+    wait_until_image_ready(fetch(:image_tag)) unless fetch(:skip_image_ready_check)
     run_command("bash")
   end
 
