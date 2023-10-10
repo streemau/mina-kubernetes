@@ -18,6 +18,12 @@ namespace :kubernetes do
     apply_kubernetes_resources(args[:options])
   end
 
+  task :global_deploy, [:options] do |task, args|
+    set_tag_from_branch_commit unless fetch(:image_tag)
+    wait_until_image_ready(fetch(:image_tag)) unless fetch(:skip_image_ready_check)
+    apply_global_kubernetes_resources(args[:options])
+  end
+
   task :bash do
     desc "Spins up temporary pod with image and opens remote interactive bash"
     set_tag_from_branch_commit unless fetch(:image_tag)
@@ -119,7 +125,7 @@ def run_command(command, env_hash = {})
     when :replace
       system delete_command
       run :local do
-        comment "Lauching Pod #{color(pod_name, 36)} to run #{color(command, 36)}"
+        comment "Launching Pod #{color(pod_name, 36)} to run #{color(command, 36)}"
       end
       wait_for_image_and_run_command("#{pod_run_command} -- #{command}")
     when :other
@@ -142,6 +148,24 @@ def apply_kubernetes_resources(options)
 
     render_cmd = "#{proxy_env} krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},namespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
     deploy_cmd = "#{proxy_env} krane deploy #{fetch(:namespace)} #{fetch(:kubernetes_context)} --stdin "
+    deploy_cmd += options[:deployment_options] if options&.[](:deployment_options)
+
+    ejson_secrets_path = "#{filepaths}/secrets.ejson"
+    deploy_cmd += " --filenames #{ejson_secrets_path}" if File.exist?(ejson_secrets_path)
+
+    command "#{render_cmd} | #{deploy_cmd}"
+  end
+end
+
+def apply_global_kubernetes_resources(options)
+  run :local do
+    comment "Applying all global Kubernetes resources..."
+
+    proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
+    filepaths = options&.[](:filepaths) || "config/deploy/#{fetch(:stage)}"
+
+    render_cmd = "#{proxy_env} krane render --bindings=image_repo=#{fetch(:image_repo)},image_tag=#{fetch(:image_tag)},nzamespace=#{fetch(:namespace)} --current_sha #{fetch(:image_tag)} -f #{filepaths}"
+    deploy_cmd = "#{proxy_env} krane global-deploy #{fetch(:kubernetes_context)} --selector #{fetch(:global_deploy_selector_key)}=#{fetch(:global_deploy_selector_value)} --stdin "
     deploy_cmd += options[:deployment_options] if options&.[](:deployment_options)
 
     ejson_secrets_path = "#{filepaths}/secrets.ejson"
