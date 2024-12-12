@@ -93,7 +93,11 @@ def run_command(command, env_hash = {})
   env = env_hash.collect{|k,v| "--env #{k}=#{v}" }.join(" ")
   proxy_env = "HTTPS_PROXY=#{fetch(:proxy)}" if fetch(:proxy)
 
-  default_pod_name = "#{`whoami`.strip}-#{command}-#{fetch(:branch)}".downcase.gsub(" ", "-").gsub(":", "-")
+  default_pod_name =
+    "#{`whoami`.strip}-#{command}-#{fetch(:branch)}"
+      .downcase
+      .gsub(/[ :.]/, "-")
+
   pod_name = TTY::Prompt.new.ask("What name for the pod?", :value => default_pod_name)
 
   run :local do
@@ -115,9 +119,9 @@ def run_command(command, env_hash = {})
         "Keep it and start one with a different name" => :other,
       }
     )
-    
+
     delete_command = "#{proxy_env} kubectl delete pod #{pod_name} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
-    
+
     case choice
     when :attach
       attach_command = "#{proxy_env} kubectl attach #{pod_name} -i --tty -c #{pod_name} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
