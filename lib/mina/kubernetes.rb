@@ -101,7 +101,7 @@ def run_command(command, env_hash = {})
   pod_name = TTY::Prompt.new.ask("What name for the pod?", :value => default_pod_name)
 
   run :local do
-    comment "Lauching pod #{color(pod_name, 36)} to run #{color(command, 36)}"
+    comment "Launching pod #{color(pod_name, 36)} to run #{color(command, 36)}"
   end
 
   pod_run_command = "#{proxy_env} kubectl run #{pod_name} --rm -i --tty --restart=Never --overrides='#{fetch(:kubectl_pod_overrides)}' --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)} --image #{fetch(:image_repo)}:#{fetch(:image_tag)} #{env}"
@@ -124,7 +124,7 @@ def run_command(command, env_hash = {})
 
     case choice
     when :attach
-      attach_command = "#{proxy_env} kubectl attach #{pod_name} -i --tty -c #{pod_name} --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
+      attach_command = "#{proxy_env} kubectl attach #{pod_name} -i --tty -c console --context=#{fetch(:kubernetes_context)} --namespace=#{fetch(:namespace)}"
       system "#{attach_command} && #{delete_command}"
     when :replace
       system delete_command
